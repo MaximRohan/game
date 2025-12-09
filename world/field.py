@@ -22,6 +22,13 @@ field = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 ]
 
+# время роста в секундах для каждой клетки
+growth_time = [
+    [0.0 for _ in range(len(field[0]))]
+    for _ in range(len(field))
+]
+
+GROWTH_DURATION = 5.0  # секунд до полного размера
 FIELD_OFFSET_X = 5
 FIELD_OFFSET_Y = 5
 CELL_SIZE = TILE_SIZE - 5  # если хочешь зазоры
@@ -41,7 +48,7 @@ grass_img = pygame.transform.scale(grass_img, (CELL_SIZE, CELL_SIZE))
 tree_img = pygame.image.load(TREE_PATH).convert_alpha()
 tree_img = pygame.transform.scale(tree_img, (CELL_SIZE, CELL_SIZE))
 
-def field_draw():
+def field_draw(dt):
     screen.fill("grey")
 
     height = len(field)
@@ -54,18 +61,53 @@ def field_draw():
             pixel_x = FIELD_OFFSET_X + x * TILE_SIZE
             pixel_y = FIELD_OFFSET_Y + y * TILE_SIZE
 
-            rect = (pixel_x, pixel_y, CELL_SIZE, CELL_SIZE)
+            screen.blit(ground_img, (pixel_x, pixel_y))
 
-            if tile == 0:
-                screen.blit(ground_img, (pixel_x, pixel_y))
-            elif tile == 1:
-                screen.blit(ground_img, (pixel_x, pixel_y))
-                screen.blit(grass_img, (pixel_x, pixel_y))
+            if tile == 1:
+                draw_growing_grass(x, y, pixel_x, pixel_y, dt)
             elif tile == 2:
-                screen.blit(ground_img, (pixel_x, pixel_y))
-                screen.blit(tree_img, (pixel_x, pixel_y))
-            else:
-                pygame.draw.rect(screen, "black", rect)
+                draw_growing_tree(x, y, pixel_x, pixel_y, dt)
 
+def draw_growing_grass(x, y, pixel_x, pixel_y, dt):
+    # обновляем таймер роста
+    current = growth_time[y][x]
+    current = min(current + dt, GROWTH_DURATION)
+    growth_time[y][x] = current
+
+    progress = current / GROWTH_DURATION  # от 0.0 до 1.0
+
+    # защита от нуля
+    if progress <= 0.0:
+        progress = 0.01
+
+    target_size = int(CELL_SIZE * progress)
+
+    # масштабируем базовый спрайт
+    img = pygame.transform.smoothscale(grass_img, (target_size, target_size))
+
+    # центрируем внутри клетки
+    offset = (CELL_SIZE - target_size) // 2
+    screen.blit(img, (pixel_x + offset, pixel_y + offset))
+
+def draw_growing_tree(x, y, pixel_x, pixel_y, dt):
+    # обновляем таймер роста
+    current = growth_time[y][x]
+    current = min(current + dt, GROWTH_DURATION)
+    growth_time[y][x] = current
+
+    progress = current / GROWTH_DURATION  # от 0.0 до 1.0
+
+    # защита от нуля
+    if progress <= 0.0:
+        progress = 0.01
+
+    target_size = int(CELL_SIZE * progress)
+
+    # масштабируем базовый спрайт
+    img = pygame.transform.smoothscale(tree_img, (target_size, target_size))
+
+    # центрируем внутри клетки
+    offset = (CELL_SIZE - target_size) // 2
+    screen.blit(img, (pixel_x + offset, pixel_y + offset))
 
 

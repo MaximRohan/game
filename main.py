@@ -5,11 +5,13 @@ import os
 
 
 from world import field as field_module
-from actions import movement, harvest
+
+from actions import movement, harvest, plant
 
 # pygame setup
 pygame.init()
 
+growth_time = field_module.growth_time
 field = field_module.field
 
 screen = settings.screen
@@ -40,6 +42,7 @@ player_x = 0
 player_y = 9
 
 while running:
+    dt = clock.tick(60) / 1000
     # poll for events
     # pygame.QUIT event means the user clicked X to close your window
     for event in pygame.event.get():
@@ -59,9 +62,14 @@ while running:
                 direction = "right"
                 player_x, player_y = movement.try_move(field, player_x, player_y, 1, 0)
             elif event.key == pygame.K_SPACE:
-                harvest.harvest(field, player_x, player_y)
+                harvest.harvest(field, player_x, player_y, growth_time)
+            elif event.key == pygame.K_1:
+                plant.plant_grass(field, player_x, player_y)
+            elif event.key == pygame.K_2:
+                plant.plant_tree(field, player_x, player_y)
 
-    field_module.field_draw()
+
+    field_module.field_draw(dt)
 
     if direction == "up":
         current_img = img_up
@@ -80,6 +88,5 @@ while running:
     # flip() the display to put your work on screen
     pygame.display.flip()
 
-    dt = clock.tick(60) / 1000
 
 pygame.quit()
